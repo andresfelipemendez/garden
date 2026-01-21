@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/alecthomas/chroma/v2/formatters/html"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
+	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	"go.abhg.dev/goldmark/wikilink"
 )
 
@@ -47,7 +49,15 @@ type TemplateData struct {
 
 func Parse(markdown []byte) (*ParseResult, error) {
 	md := goldmark.New(
-		goldmark.WithExtensions(&wikilink.Extender{}),
+		goldmark.WithExtensions(
+			&wikilink.Extender{},
+			highlighting.NewHighlighting(
+				highlighting.WithStyle("github"),
+				highlighting.WithFormatOptions(
+					html.WithClasses(true),
+				),
+			),
+		),
 	)
 
 	reader := text.NewReader(markdown)
@@ -96,29 +106,70 @@ func Parse(markdown []byte) (*ParseResult, error) {
 var tmpl = template.Must(template.New("note").Parse(`<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 </head>
-<body>
-    <article>
-        {{.Content}}
-    </article>
-    {{if .Backlinks}}
-    <nav class="backlinks">
-        <h2>Linked from</h2>
-        <ul>
-        {{range .Backlinks}}
-            <li><a href="{{.Href}}">{{.Title}}</a></li>
+<body class="sidebar-open">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">&#9776;</button>
+    <aside class="sidebar">
+        <button class="sidebar-close" onclick="toggleSidebar()" aria-label="Close sidebar">&times;</button>
+        <nav class="sidebar-nav">
+            <a href="/">Home</a>
+        </nav>
+        {{if .Backlinks}}
+        <nav class="backlinks">
+            <h2>Linked from</h2>
+            <ul>
+            {{range .Backlinks}}
+                <li><a href="{{.Href}}">{{.Title}}</a></li>
+            {{end}}
+            </ul>
+        </nav>
         {{end}}
-        </ul>
-    </nav>
-    {{end}}
+    </aside>
+    <main>
+        <article>
+            {{.Content}}
+        </article>
+    </main>
+    <script>
+        function toggleSidebar() {
+            document.body.classList.toggle('sidebar-open');
+        }
+
+        document.querySelectorAll('pre.chroma').forEach(function(pre) {
+            var btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.innerHTML = '<span class="material-icons">content_copy</span>';
+            btn.onclick = function() {
+                var code = pre.querySelector('code');
+                var text = code.innerText.trim();
+                navigator.clipboard.writeText(text).then(function() {
+                    btn.innerHTML = '<span class="material-icons">check</span>';
+                    setTimeout(function() {
+                        btn.innerHTML = '<span class="material-icons">content_copy</span>';
+                    }, 2000);
+                });
+            };
+            pre.appendChild(btn);
+        });
+    </script>
 </body>
 </html>
 `))
 
 var md = goldmark.New(
-	goldmark.WithExtensions(&wikilink.Extender{}),
+	goldmark.WithExtensions(
+		&wikilink.Extender{},
+		highlighting.NewHighlighting(
+			highlighting.WithStyle("github"),
+			highlighting.WithFormatOptions(
+				html.WithClasses(true),
+			),
+		),
+	),
 )
 
 func parseNote(path string) (*Note, error) {

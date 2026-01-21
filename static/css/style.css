@@ -26,6 +26,20 @@
     font-style: italic;
 }
 
+@font-face {
+    font-family: 'Source Code Pro';
+    src: url('/fonts/SourceCodePro-VariableFont_wght.ttf') format('truetype');
+    font-weight: 200 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Code Pro';
+    src: url('/fonts/SourceCodePro-Italic-VariableFont_wght.ttf') format('truetype');
+    font-weight: 200 900;
+    font-style: italic;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -33,9 +47,89 @@
 body {
     font-family: 'iA Writer Duo', monospace;
     line-height: 1.6;
-    max-width: 65ch;
-    margin: 0 auto;
+    margin: 0;
+    padding: 0;
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background: #f6f8fa;
+    border-right: 1px solid #e1e4e8;
+    padding: 2rem 1.5rem;
+    padding-top: 4rem;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+}
+
+.sidebar-open .sidebar {
+    transform: translateX(0);
+}
+
+.sidebar-nav {
+    margin-bottom: 2rem;
+}
+
+.sidebar-nav a {
+    display: block;
+    padding: 0.5rem 0;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.sidebar-toggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 10;
+    background: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.sidebar-toggle:hover {
+    background: #f6f8fa;
+}
+
+.sidebar-open .sidebar-toggle {
+    display: none;
+}
+
+.sidebar-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6e7781;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+}
+
+.sidebar-close:hover {
+    color: #24292f;
+}
+
+/* Main content */
+main {
     padding: 2rem;
+    padding-left: 5rem;
+    transition: margin-left 0.3s ease, padding-left 0.3s ease;
+}
+
+.sidebar-open main {
+    margin-left: 280px;
+    padding-left: 3rem;
 }
 
 article h1 {
@@ -50,18 +144,166 @@ a:visited {
     color: #551a8b;
 }
 
+/* Backlinks in sidebar */
 .backlinks {
-    margin-top: 3rem;
+    margin-top: 2rem;
     padding-top: 1rem;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid #e1e4e8;
 }
 
 .backlinks h2 {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6e7781;
+    margin-bottom: 0.75rem;
 }
 
 .backlinks ul {
-    padding-left: 1.5rem;
+    list-style: none;
+    padding: 0;
     margin: 0;
 }
+
+.backlinks li {
+    margin-bottom: 0.5rem;
+}
+
+.backlinks a {
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.backlinks a:hover {
+    text-decoration: underline;
+}
+
+/* Code blocks */
+pre {
+    background: #f6f8fa;
+    padding: 1rem;
+    padding-left: 3.5rem;
+    overflow-x: auto;
+    border-radius: 4px;
+    position: relative;
+}
+
+pre.chroma {
+    counter-reset: line;
+}
+
+pre.chroma .line::before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    width: 2.5rem;
+    margin-left: -3.5rem;
+    padding-right: 1rem;
+    text-align: right;
+    color: #6e7781;
+    user-select: none;
+    pointer-events: none;
+}
+
+pre .copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    padding: 0.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+pre .copy-btn:hover {
+    background: #f6f8fa;
+}
+
+pre .copy-btn .material-icons {
+    font-size: 1.125rem;
+    color: #6e7781;
+}
+
+code {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.9em;
+}
+
+/* Inline code */
+:not(pre) > code {
+    background: #f6f8fa;
+    color: #0550ae;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+}
+
+/* Chroma syntax highlighting (github style) */
+.chroma { background-color: #f6f8fa; }
+.chroma .lntd { vertical-align: top; padding: 0; margin: 0; border: 0; }
+.chroma .lntable { border-spacing: 0; padding: 0; margin: 0; border: 0; }
+.chroma .hl { background-color: #ffffcc; }
+.chroma .lnt { color: #6e7781; padding: 0 0.4em 0 0.4em; }
+.chroma .ln { color: #6e7781; padding: 0 0.4em 0 0.4em; }
+.chroma .k { color: #cf222e; }
+.chroma .kc { color: #cf222e; }
+.chroma .kd { color: #cf222e; }
+.chroma .kn { color: #cf222e; }
+.chroma .kp { color: #cf222e; }
+.chroma .kr { color: #cf222e; }
+.chroma .kt { color: #cf222e; }
+.chroma .na { color: #116329; }
+.chroma .nb { color: #953800; }
+.chroma .nc { color: #953800; }
+.chroma .no { color: #0550ae; }
+.chroma .nd { color: #8250df; }
+.chroma .ni { color: #24292f; }
+.chroma .ne { color: #953800; }
+.chroma .nf { color: #8250df; }
+.chroma .nl { color: #0550ae; }
+.chroma .nn { color: #953800; }
+.chroma .nt { color: #116329; }
+.chroma .nv { color: #0550ae; }
+.chroma .s { color: #0a3069; }
+.chroma .sa { color: #0a3069; }
+.chroma .sb { color: #0a3069; }
+.chroma .sc { color: #0a3069; }
+.chroma .dl { color: #0a3069; }
+.chroma .sd { color: #0a3069; }
+.chroma .s2 { color: #0a3069; }
+.chroma .se { color: #0a3069; }
+.chroma .sh { color: #0a3069; }
+.chroma .si { color: #0a3069; }
+.chroma .sx { color: #0a3069; }
+.chroma .sr { color: #116329; }
+.chroma .s1 { color: #0a3069; }
+.chroma .ss { color: #0a3069; }
+.chroma .m { color: #0550ae; }
+.chroma .mb { color: #0550ae; }
+.chroma .mf { color: #0550ae; }
+.chroma .mh { color: #0550ae; }
+.chroma .mi { color: #0550ae; }
+.chroma .il { color: #0550ae; }
+.chroma .mo { color: #0550ae; }
+.chroma .o { color: #cf222e; }
+.chroma .ow { color: #cf222e; }
+.chroma .c { color: #6e7781; }
+.chroma .ch { color: #6e7781; }
+.chroma .cm { color: #6e7781; }
+.chroma .c1 { color: #6e7781; }
+.chroma .cs { color: #6e7781; }
+.chroma .cp { color: #cf222e; }
+.chroma .cpf { color: #0a3069; }
+.chroma .gd { color: #82071e; background-color: #ffebe9; }
+.chroma .ge { font-style: italic; }
+.chroma .gr { color: #82071e; }
+.chroma .gh { color: #0550ae; font-weight: bold; }
+.chroma .gi { color: #116329; background-color: #dafbe1; }
+.chroma .go { color: #6e7781; }
+.chroma .gp { color: #6e7781; font-weight: bold; }
+.chroma .gs { font-weight: bold; }
+.chroma .gu { color: #0550ae; font-weight: bold; }
+.chroma .gl { text-decoration: underline; }

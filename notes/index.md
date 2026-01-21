@@ -6,3 +6,4 @@ A collection of interconnected notes.
 
 - [[code]]
 - [[ast]]
+- [[adding-a-service-to-my-cluster]]
