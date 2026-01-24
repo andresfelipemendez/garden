@@ -2,11 +2,14 @@ package garden
 
 import (
 	"bytes"
+	_ "embed"
 	"fmt"
 	"html/template"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/alecthomas/chroma/v2/formatters/html"
 	"github.com/yuin/goldmark"
@@ -34,6 +37,7 @@ type Note struct {
 	Body      []byte
 	Links     []string
 	Backlinks []string
+	ModTime   time.Time
 }
 
 type BacklinkData struct {
@@ -45,6 +49,18 @@ type TemplateData struct {
 	Title     string
 	Content   template.HTML
 	Backlinks []BacklinkData
+	Notes     []NoteLink
+}
+
+type IndexTemplateData struct {
+	Title string
+	Notes []NoteLink
+}
+
+type NoteLink struct {
+	Href    string
+	Title   string
+	Updated string
 }
 
 func Parse(markdown []byte) (*ParseResult, error) {
@@ -118,16 +134,26 @@ var tmpl = template.Must(template.New("note").Parse(`<!DOCTYPE html>
         <nav class="sidebar-nav">
             <a href="/">Home</a>
         </nav>
-        {{if .Backlinks}}
         <nav class="backlinks">
             <h2>Linked from</h2>
+            {{if .Backlinks}}
             <ul>
             {{range .Backlinks}}
                 <li><a href="{{.Href}}">{{.Title}}</a></li>
             {{end}}
             </ul>
+            {{else}}
+            <p class="empty">No backlinks yet</p>
+            {{end}}
         </nav>
-        {{end}}
+        <nav class="all-notes">
+            <h2>Notes <span class="sort-buttons"><button onclick="sortNotes('date')" class="sort-btn active" data-sort="date">recent</button> <button onclick="sortNotes('alpha')" class="sort-btn" data-sort="alpha">a-z</button></span></h2>
+            <ul id="notes-list">
+            {{range .Notes}}
+                <li data-title="{{.Title}}" data-date="{{.Updated}}"><a href="{{.Href}}">{{.Title}}</a></li>
+            {{end}}
+            </ul>
+        </nav>
     </aside>
     <main>
         <article>
@@ -137,6 +163,22 @@ var tmpl = template.Must(template.New("note").Parse(`<!DOCTYPE html>
     <script>
         function toggleSidebar() {
             document.body.classList.toggle('sidebar-open');
+        }
+
+        function sortNotes(mode) {
+            var list = document.getElementById('notes-list');
+            var items = Array.from(list.querySelectorAll('li'));
+            items.sort(function(a, b) {
+                if (mode === 'alpha') {
+                    return a.dataset.title.localeCompare(b.dataset.title);
+                } else {
+                    return b.dataset.date.localeCompare(a.dataset.date);
+                }
+            });
+            items.forEach(function(item) { list.appendChild(item); });
+            document.querySelectorAll('.sort-btn').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.sort === mode);
+            });
         }
 
         document.querySelectorAll('pre.chroma').forEach(function(pre) {
@@ -172,7 +214,16 @@ var md = goldmark.New(
 	),
 )
 
+//go:embed index.tmpl
+var indexTmplContent string
+var indexTmpl = template.Must(template.New("index").Parse(indexTmplContent))
+
 func parseNote(path string) (*Note, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+
 	body, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -186,10 +237,11 @@ func parseNote(path string) (*Note, error) {
 	slug := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 
 	return &Note{
-		Slug:  slug,
-		Title: result.Title,
-		Body:  body,
-		Links: result.Links,
+		Slug:    slug,
+		Title:   result.Title,
+		Body:    body,
+		Links:   result.Links,
+		ModTime: info.ModTime(),
 	}, nil
 }
 
@@ -216,7 +268,7 @@ func resolveBacklinks(slugs []string, site *Site) []BacklinkData {
 	return result
 }
 
-func renderNote(outDir string, note *Note, site *Site) error {
+func renderNote(outDir string, note *Note, site *Site, noteLinks []NoteLink) error {
 	var buf bytes.Buffer
 	if err := md.Convert(note.Body, &buf); err != nil {
 		return err
@@ -226,6 +278,7 @@ func renderNote(outDir string, note *Note, site *Site) error {
 		Title:     note.Title,
 		Content:   template.HTML(buf.String()),
 		Backlinks: resolveBacklinks(note.Backlinks, site),
+		Notes:     noteLinks,
 	}
 
 	outPath := filepath.Join(outDir, note.Slug+".html")
@@ -242,6 +295,40 @@ func renderNote(outDir string, note *Note, site *Site) error {
 	return tmpl.Execute(f, data)
 }
 
+func renderIndex(outDir string, site *Site) error {
+	var notes []*Note
+	for _, note := range site.Notes {
+		notes = append(notes, note)
+	}
+
+	sort.Slice(notes, func(i, j int) bool {
+		return notes[i].ModTime.After(notes[j].ModTime)
+	})
+
+	var noteLinks []NoteLink
+	for _, note := range notes {
+		noteLinks = append(noteLinks, NoteLink{
+			Href:    note.Slug + ".html",
+			Title:   note.Title,
+			Updated: note.ModTime.Format("02 Jan 2006"),
+		})
+	}
+
+	data := IndexTemplateData{
+		Title: "Garden",
+		Notes: noteLinks,
+	}
+
+	outPath := filepath.Join(outDir, "index.html")
+	f, err := os.Create(outPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return indexTmpl.Execute(f, data)
+}
+
 func Build(paths []string, outDir string) error {
 	site := &Site{
 		Notes:    make(map[string]*Note),
@@ -250,6 +337,10 @@ func Build(paths []string, outDir string) error {
 	}
 
 	for _, path := range paths {
+		// Skip index.md - index is generated dynamically
+		if filepath.Base(path) == "index.md" {
+			continue
+		}
 		note, err := parseNote(path)
 		if err != nil {
 			return fmt.Errorf("%s: %w", path, err)
@@ -264,10 +355,31 @@ func Build(paths []string, outDir string) error {
 		note.Backlinks = site.Backward[note.Slug]
 	}
 
+	// Build sorted note links for sidebar
+	var notes []*Note
 	for _, note := range site.Notes {
-		if err := renderNote(outDir, note, site); err != nil {
+		notes = append(notes, note)
+	}
+	sort.Slice(notes, func(i, j int) bool {
+		return notes[i].ModTime.After(notes[j].ModTime)
+	})
+	var noteLinks []NoteLink
+	for _, note := range notes {
+		noteLinks = append(noteLinks, NoteLink{
+			Href:    note.Slug + ".html",
+			Title:   note.Title,
+			Updated: note.ModTime.Format("2006-01-02"),
+		})
+	}
+
+	for _, note := range site.Notes {
+		if err := renderNote(outDir, note, site, noteLinks); err != nil {
 			return fmt.Errorf("%s: %w", note.Slug, err)
 		}
+	}
+
+	if err := renderIndex(outDir, site); err != nil {
+		return fmt.Errorf("index: %w", err)
 	}
 
 	return nil

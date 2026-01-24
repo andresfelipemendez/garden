@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+</head>
+<body>
+    <main>
+        <article>
+            <h1>{{.Title}}</h1>
+            <p>This is my digital garden. It's a collection of notes, ideas, and thoughts that grow and evolve over time. Unlike a blog, these aren't polished articles, just working notes for myself. They're interconnected, often incomplete, and always changing.</p>
+            <p>Since I started using AI to code, I've felt more anxious about my own understanding. So I decided to take note-taking seriously. Writing is the work. Gaining knowledge matters more than ever, and these notes are how I make sure the learning stays with me.</p>
+            <ul class="note-list">
+            {{range .Notes}}
+                <li><span class="note-date">{{.Updated}}</span> <a href="{{.Href}}">{{.Title}}</a></li>
+            {{end}}
+            </ul>
+        </article>
+    </main>
+</body>
+</html>

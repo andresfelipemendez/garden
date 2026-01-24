@@ -178,6 +178,13 @@ a:visited {
     text-decoration: underline;
 }
 
+.backlinks .empty {
+    font-size: 0.85rem;
+    color: #8b949e;
+    font-style: italic;
+    margin: 0;
+}
+
 /* Code blocks */
 pre {
     background: #f6f8fa;
@@ -307,3 +314,81 @@ code {
 .chroma .gs { font-weight: bold; }
 .chroma .gu { color: #0550ae; font-weight: bold; }
 .chroma .gl { text-decoration: underline; }
+
+/* Note list (index page) */
+.note-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.note-list li {
+    margin-bottom: 0.5rem;
+}
+
+.note-date {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.875rem;
+    color: #8b949e;
+    margin-right: 1rem;
+}
+
+/* Sidebar notes list */
+.all-notes {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e1e4e8;
+}
+
+.all-notes h2 {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6e7781;
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.all-notes ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.all-notes li {
+    margin-bottom: 0.5rem;
+}
+
+.all-notes a {
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.all-notes a:hover {
+    text-decoration: underline;
+}
+
+.sort-buttons {
+    font-size: 0.75rem;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.sort-btn {
+    background: none;
+    border: none;
+    color: #8b949e;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.75rem;
+}
+
+.sort-btn:hover {
+    color: #24292f;
+}
+
+.sort-btn.active {
+    color: #0066cc;
+}
