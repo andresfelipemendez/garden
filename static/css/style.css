@@ -122,14 +122,14 @@ body {
 
 /* Main content */
 main {
-    padding: 2rem;
-    padding-left: 5rem;
+    padding: clamp(1rem, 4vw, 3rem);
+    padding-left: 4rem;
     transition: margin-left 0.3s ease, padding-left 0.3s ease;
 }
 
 .sidebar-open main {
     margin-left: 280px;
-    padding-left: 3rem;
+    padding-left: clamp(1rem, 4vw, 3rem);
 }
 
 article h1 {
@@ -370,19 +370,34 @@ code {
     text-decoration: underline;
 }
 
-.sort-buttons {
-    font-size: 0.75rem;
-    text-transform: none;
-    letter-spacing: normal;
+/* Notes header with sort toggle */
+.notes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.notes-header h2 {
+    margin: 0;
+}
+
+.sort-toggle {
+    display: flex;
+    background: #e1e4e8;
+    border-radius: 9999px;
+    padding: 2px;
 }
 
 .sort-btn {
     background: none;
     border: none;
-    color: #8b949e;
+    color: #6e7781;
     cursor: pointer;
-    padding: 0;
+    padding: 0.25rem 0.75rem;
     font-size: 0.75rem;
+    border-radius: 9999px;
+    transition: all 0.2s ease;
 }
 
 .sort-btn:hover {
@@ -390,5 +405,7 @@ code {
 }
 
 .sort-btn.active {
-    color: #0066cc;
+    background: #fff;
+    color: #24292f;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }

@@ -4,18 +4,18 @@ Repetitive work irritates me quite easily so I try to optimize and automate as m
 # automate the iteration
 to bootstrap writing the script I decided to start with vim in WSL Ubuntu so the first steps is to add temporary remaps while I get the script to install Neovim and LazyVim I've documented the questions I had to search while doing this:
 
-**Q:** how to open a terminal like VS Code?
-**A:** `split | terminal`
+- **Q:** how to open a terminal like VS Code?
+- **A:** `split | terminal`
 
-**Q:** How to exit terminal mode?
-**A:** `Ctrl+w N` that's capital N so `Shift+N`  
-  
-**Q:** The terminal opened above my buffer, how do I switch them so it's at the bottom?
-**A:** `Ctrl+w r`
+- **Q:** How to exit terminal mode?
+- **A:** `Ctrl+w N` that's capital N so `Shift+N`
+
+- **Q:** The terminal opened above my buffer, how do I switch them so it's at the bottom?
+- **A:** `Ctrl+w r`
 
 # Temporary shortcuts
 Since I'll be switching constantly between these buffers I added a shortcut to save and switch
-```
+```vim
 :tnoremap <S-TAb> <C-w>N<C-w>k
 :nnoremap <silent> <S-TAb> :w<CR><C-w>j:call feedkeys('i')<CR>
 :inoremap <silent> <S-TAb> <Esc>:w<CR><C-w>j:call feedkeys('i')<CR>

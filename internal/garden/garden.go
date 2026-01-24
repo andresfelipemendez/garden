@@ -148,7 +148,13 @@ var tmpl = template.Must(template.New("note").Parse(`<!DOCTYPE html>
             {{end}}
         </nav>
         <nav class="all-notes">
-            <h2>Notes <span class="sort-buttons"><button onclick="sortNotes('date')" class="sort-btn active" data-sort="date">recent</button> <button onclick="sortNotes('alpha')" class="sort-btn" data-sort="alpha">a-z</button></span></h2>
+            <div class="notes-header">
+                <h2>Notes</h2>
+                <div class="sort-toggle">
+                    <button onclick="sortNotes('date')" class="sort-btn active" data-sort="date">recent</button>
+                    <button onclick="sortNotes('alpha')" class="sort-btn" data-sort="alpha">a-z</button>
+                </div>
+            </div>
             <ul id="notes-list">
             {{range .Notes}}
                 <li data-title="{{.Title}}" data-date="{{.Updated}}"><a href="{{.Href}}">{{.Title}}</a></li>
@@ -167,6 +173,10 @@ var tmpl = template.Must(template.New("note").Parse(`<!DOCTYPE html>
         }
 
         function sortNotes(mode) {
+            var currentActive = document.querySelector('.sort-btn.active');
+            if (currentActive && currentActive.dataset.sort === mode) {
+                mode = mode === 'date' ? 'alpha' : 'date';
+            }
             var list = document.getElementById('notes-list');
             var items = Array.from(list.querySelectorAll('li'));
             items.sort(function(a, b) {
