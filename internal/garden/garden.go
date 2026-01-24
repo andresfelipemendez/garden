@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -219,11 +220,6 @@ var indexTmplContent string
 var indexTmpl = template.Must(template.New("index").Parse(indexTmplContent))
 
 func parseNote(path string) (*Note, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		return nil, err
-	}
-
 	body, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -236,13 +232,28 @@ func parseNote(path string) (*Note, error) {
 
 	slug := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 
+	modTime := getGitModTime(path)
+
 	return &Note{
 		Slug:    slug,
 		Title:   result.Title,
 		Body:    body,
 		Links:   result.Links,
-		ModTime: info.ModTime(),
+		ModTime: modTime,
 	}, nil
+}
+
+func getGitModTime(path string) time.Time {
+	cmd := exec.Command("git", "log", "-1", "--format=%cI", "--", path)
+	out, err := cmd.Output()
+	if err != nil {
+		return time.Now()
+	}
+	t, err := time.Parse(time.RFC3339, strings.TrimSpace(string(out)))
+	if err != nil {
+		return time.Now()
+	}
+	return t
 }
 
 func buildBacklinks(site *Site) {

@@ -1,9 +1,9 @@
 # Build stage
 FROM golang:latest AS builder
+RUN apt-get update && apt-get install -y git
 WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
 COPY . .
+RUN go mod download
 RUN go build -o garden ./cmd/garden
 RUN ./garden
 RUN cp -r static/* public/
