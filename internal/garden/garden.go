@@ -47,10 +47,11 @@ type BacklinkData struct {
 }
 
 type TemplateData struct {
-	Title     string
-	Content   template.HTML
-	Backlinks []BacklinkData
-	Notes     []NoteLink
+	Title       string
+	Content     template.HTML
+	Backlinks   []BacklinkData
+	Notes       []NoteLink
+	CurrentHref string
 }
 
 type IndexTemplateData struct {
@@ -127,14 +128,16 @@ var tmpl = template.Must(template.New("note").Parse(`<!DOCTYPE html>
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=dock_to_right,potted_plant" />
 </head>
-<body class="sidebar-open">
-    <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">&#9776;</button>
+<body class="sidebar-expanded">
     <aside class="sidebar">
-        <button class="sidebar-close" onclick="toggleSidebar()" aria-label="Close sidebar">&times;</button>
-        <nav class="sidebar-nav">
-            <a href="/">Home</a>
-        </nav>
+        <header class="sidebar-header">
+            <a href="/" class="site-title"><span class="material-symbols-outlined">potted_plant</span>Note Garden</a>
+            <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                <span class="material-symbols-outlined">dock_to_right</span>
+            </button>
+        </header>
         <nav class="backlinks">
             <h2>Linked from</h2>
             {{if .Backlinks}}
@@ -156,8 +159,9 @@ var tmpl = template.Must(template.New("note").Parse(`<!DOCTYPE html>
                 </div>
             </div>
             <ul id="notes-list">
+            {{$current := .CurrentHref}}
             {{range .Notes}}
-                <li data-title="{{.Title}}" data-date="{{.Updated}}"><a href="{{.Href}}">{{.Title}}</a></li>
+                <li data-title="{{.Title}}" data-date="{{.Updated}}"><a href="{{.Href}}"{{if eq .Href $current}} class="active"{{end}}>{{.Title}}</a></li>
             {{end}}
             </ul>
         </nav>
@@ -169,7 +173,7 @@ var tmpl = template.Must(template.New("note").Parse(`<!DOCTYPE html>
     </main>
     <script>
         function toggleSidebar() {
-            document.body.classList.toggle('sidebar-open');
+            document.body.classList.toggle('sidebar-expanded');
         }
 
         function sortNotes(mode) {
@@ -296,10 +300,11 @@ func renderNote(outDir string, note *Note, site *Site, noteLinks []NoteLink) err
 	}
 
 	data := TemplateData{
-		Title:     note.Title,
-		Content:   template.HTML(buf.String()),
-		Backlinks: resolveBacklinks(note.Backlinks, site),
-		Notes:     noteLinks,
+		Title:       note.Title,
+		Content:     template.HTML(buf.String()),
+		Backlinks:   resolveBacklinks(note.Backlinks, site),
+		Notes:       noteLinks,
+		CurrentHref: note.Slug + ".html",
 	}
 
 	outPath := filepath.Join(outDir, note.Slug+".html")
